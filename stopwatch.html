@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="icon" type="image/png" href="favicon.png">
+  <title>Stopwatch Fun!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+    }
+    #display {
+      font-family: 'Comic Sans MS', 'Comic Sans', cursive, sans-serif;
+    }
+    body.timer-mode {
+      background: url('desktoop.png') no-repeat center center fixed;
+      background-size: cover;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-purple-100 to-pink-100">
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center border-t-4 border-purple-500">
+    <h1 class="text-4xl font-bold text-gray-800 mb-6 tracking-wide">Stopwatch Fun!</h1>
+
+    <div class="mb-8">
+      <div id="display" class="text-6xl font-extrabold text-purple-700 tracking-wider mb-4 p-4 bg-gray-100 rounded-lg shadow-inner">
+        00:00:00
+      </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <button id="start-button" class="w-full sm:w-auto px-6 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 transition duration-200 transform hover:scale-105">Start</button>
+      <button id="stop-button" class="w-full sm:w-auto px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 transform hover:scale-105" disabled>Stop</button>
+      <button id="reset-button" class="w-full sm:w-auto px-6 py-3 bg-gray-400 text-white font-semibold rounded-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 transition duration-200 transform hover:scale-105" disabled>Reset</button>
+    </div>
+
+    <button id="retro-toggle" class="mt-6 px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition duration-200 transform hover:scale-105">🎮 Retro Console Mode</button>
+
+    <button id="timer-toggle" class="mt-4 px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 transition duration-200 transform hover:scale-105">⏲️ Switch to Timer Mode</button>
+  </div>
+
+  <script>
+    const display = document.getElementById('display');
+    const startButton = document.getElementById('start-button');
+    const stopButton = document.getElementById('stop-button');
+    const resetButton = document.getElementById('reset-button');
+    const retroButton = document.getElementById('retro-toggle');
+    const timerToggle = document.getElementById('timer-toggle');
+
+    let startTime, elapsedTime = 0, timerInterval;
+    let isTimer = false;
+    let countdownTime = 5 * 60 * 1000; // Default 5 min
+    let retroActive = false;
+
+    function formatTime(ms) {
+      const date = new Date(ms);
+      const h = String(date.getUTCHours()).padStart(2, '0');
+      const m = String(date.getUTCMinutes()).padStart(2, '0');
+      const s = String(date.getUTCSeconds()).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateDisplay() {
+      const now = Date.now();
+      let current;
+
+      if (timerInterval) {
+        const diff = now - startTime;
+        current = isTimer ? Math.max(countdownTime - diff, 0) : diff + elapsedTime;
+      } else {
+        current = elapsedTime;
+      }
+
+      display.textContent = formatTime(current);
+
+      if (isTimer && current <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        alert("⏰ Time’s up!");
+        startButton.disabled = false;
+        stopButton.disabled = true;
+      }
+    }
+
+    function startStopwatch() {
+      startTime = Date.now();
+      timerInterval = setInterval(updateDisplay, 200);
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      resetButton.disabled = false;
+    }
+
+    function stopStopwatch() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      const now = Date.now();
+      elapsedTime = isTimer
+        ? Math.max(countdownTime - (now - startTime), 0)
+        : elapsedTime + (now - startTime);
+      startButton.disabled = false;
+      stopButton.disabled = true;
+    }
+
+    function resetStopwatch() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      elapsedTime = isTimer ? countdownTime : 0;
+      updateDisplay();
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      resetButton.disabled = true;
+    }
+
+    startButton.addEventListener('click', startStopwatch);
+    stopButton.addEventListener('click', stopStopwatch);
+    resetButton.addEventListener('click', resetStopwatch);
+
+    timerToggle.addEventListener('click', () => {
+      isTimer = !isTimer;
+      document.body.classList.toggle('timer-mode', isTimer);
+      timerToggle.textContent = isTimer ? "🔁 Switch to Stopwatch Mode" : "⏲️ Switch to Timer Mode";
+      elapsedTime = isTimer ? countdownTime : 0;
+      updateDisplay();
+    });
+
+    retroButton.addEventListener('click', () => {
+      retroActive = !retroActive;
+      document.body.style.background = retroActive
+        ? "radial-gradient(circle, #2b1339, #000000)"
+        : "";
+      document.body.style.fontFamily = retroActive
+        ? "'Press Start 2P', monospace"
+        : "'Comic Sans MS', cursive";
+      display.style.backgroundColor = retroActive ? "#1a001a" : "#f0f0f0";
+      display.style.color = retroActive ? "#00FF66" : "#6B21A8";
+      retroButton.textContent = retroActive
+        ? "🔙 Return to Comic Sans Mode"
+        : "🎮 Retro Console Mode";
+
+      if (retroActive && !document.getElementById('pixelFont')) {
+        const link = document.createElement('link');
+        link.id = 'pixelFont';
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';
+        document.head.appendChild(link);
+      }
+    });
+
+    // Voice feedback
+    document.addEventListener('keydown', function (e) {
+      if (/^[a-zA-Z0-9]$/.test(e.key)) {
+        try {
+          const voice = new ActiveXObject("SAPI.SpVoice");
+          voice.Speak(e.key);
+        } catch {}
+      }
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
