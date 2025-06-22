@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/png" href="favicon.png">
   <title>Stopwatch Fun!</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -50,7 +50,7 @@
 
     let startTime, elapsedTime = 0, timerInterval;
     let isTimer = false;
-    let countdownTime = 5 * 60 * 1000; // Default 5 min
+    let countdownTime = 5 * 60 * 1000;
     let retroActive = false;
 
     function formatTime(ms) {
@@ -63,14 +63,9 @@
 
     function updateDisplay() {
       const now = Date.now();
-      let current;
-
-      if (timerInterval) {
-        const diff = now - startTime;
-        current = isTimer ? Math.max(countdownTime - diff, 0) : diff + elapsedTime;
-      } else {
-        current = elapsedTime;
-      }
+      let current = timerInterval
+        ? isTimer ? Math.max(countdownTime - (now - startTime), 0) : (now - startTime + elapsedTime)
+        : elapsedTime;
 
       display.textContent = formatTime(current);
 
@@ -144,16 +139,6 @@
         link.rel = 'stylesheet';
         link.href = 'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap';
         document.head.appendChild(link);
-      }
-    });
-
-    // Voice feedback
-    document.addEventListener('keydown', function (e) {
-      if (/^[a-zA-Z0-9]$/.test(e.key)) {
-        try {
-          const voice = new ActiveXObject("SAPI.SpVoice");
-          voice.Speak(e.key);
-        } catch {}
       }
     });
 
